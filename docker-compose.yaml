@@ -1,0 +1,41 @@
+version: "3.7"
+
+services:
+  api:
+    restart: always
+    container_name: "flipner_api"
+    build: .
+    volumes:
+      - .:/code
+      - ./static:/code/static/
+    command: gunicorn --bind 0.0.0.0:8000 flipner.wsgi
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    networks:
+      - default
+
+  web:
+    restart: always
+    container_name: "flipner_web"
+    build: web/.
+    volumes:
+      - .:/code
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+
+  nginx:
+    container_name: "flipner_nginx"
+    image: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d/flipner.conf:/etc/nginx/conf.d/flipner.conf
+      - ./nginx/logs:/var/logs/nginx/
+      - ./static:/code/static/
+    depends_on:
+      - web

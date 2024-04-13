@@ -1,0 +1,36 @@
+name: Codequality and testing
+on: [workflow_call]
+jobs:
+  codequality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-codequality.txt
+      - name: Codequality
+        run: |
+          isort --profile black flipner/ api/ tests/ && black flipner/ api/ tests/
+  testing:
+    needs: codequality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Test with pytest
+        env:
+          SECRET_KEY: dummy-django-secret-key
+        run: |
+          pytest .
